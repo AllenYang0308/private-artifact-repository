@@ -1,0 +1,10 @@
+---
+apiKey: <apiKey> 
+userKey: <userKey> 
+projectName:
+productName: artifact_repository_demo 
+productToken: <productToken> 
+wss.url: https://saas.whitesourcesoftware.com/agent
+wss.api: https://saas.whitesourcesoftware.com/api/v1.3.
+offline: true
+whitesource_update_request: whitesource/

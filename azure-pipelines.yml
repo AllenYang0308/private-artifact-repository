@@ -1,0 +1,44 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- master
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+
+- script: |
+    sudo apt update -y
+    sudo apt upgrade -y
+    sudo apt install python3-pip -y
+    sudo apt  install golang-go -y
+    sudo apt install openjdk-8-jre-headless -y
+  displayName: 'Initial build environment.'
+
+- script: |
+    mv env .env
+    wget https://unified-agent.s3.amazonaws.com/wss-unified-agent.jar
+  displayName: 'Initial Whitesource environment.'
+
+- script: |
+    pip install keyring artifacts-keyring
+  displayName: 'Install Azure DevOps artifacts-keyring'
+
+- task: PipAuthenticate@1
+  displayName: 'Pip Authenticate'
+  inputs:
+    artifactFeeds: 'musasiyang/pypi_demo'
+    onlyAddExtraIndex: true
+
+- script: |
+    mkdir tmp && mkdir tmp/packages
+    pip download -r requirement.txt -d ./tmp/packages/
+    go build
+    mkdir whitesource
+    ./artifact_repository --mode=cmd --package_name=packages --project_name=packages
+    ls -l ./report/packages
+  displayName: 'Get and proxy packages.'
