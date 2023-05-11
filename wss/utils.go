@@ -10,6 +10,10 @@ import (
 	"time"
 )
 
+func GetJsonContentType() (string, string) {
+	return "Content-Type", "application/json"
+}
+
 func DoWhitesourceScan(packagePath string, productName string, withConf string) {
 	var wssEnv WhiteSourceEnv
 
@@ -107,7 +111,7 @@ func GenerateProjectReportAsync(projectName string) string {
 		os.Getenv("whitesource_api"),
 		bytes.NewBuffer(jsonData),
 	)
-	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set(GetJsonContentType())
 	req.Header.Set("Charset", "utf-8")
 
 	client := &http.Client{}
@@ -174,7 +178,7 @@ func GetProcessStatus(uuid string, projectName string) string {
 				os.Getenv("whitesource_api"),
 				bytes.NewBuffer(jsonData),
 			)
-			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set(GetJsonContentType())
 			req.Header.Set("Charset", "utf-8")
 
 			client := &http.Client{}
@@ -231,7 +235,7 @@ func GetProjectRiskReport(destination string) map[string]string {
 		os.Getenv("whitesource_api"),
 		bytes.NewBuffer(jsonData),
 	)
-	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set(GetJsonContentType())
 	req.Header.Set("Charset", "utf-8")
 
 	client := &http.Client{}
@@ -294,7 +298,7 @@ func GetInventoryReport() InventoryReport {
 		os.Getenv("whitesource_api"),
 		bytes.NewBuffer(jsonData),
 	)
-	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set(GetJsonContentType())
 	req.Header.Set("Charset", "utf-8")
 
 	client := &http.Client{}

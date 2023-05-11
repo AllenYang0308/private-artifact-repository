@@ -8,60 +8,60 @@ import (
 )
 
 type Worker interface {
-	Download(destination string, packang_name string, index_url string) string
-	Sync(target_url string, package_file string) string
-	Remove(full_path string) error
+	Download(destination string, packageName string, indexUrl string) string
+	Sync(targetUrl string, packageFile string) string
+	Remove(fullPath string) error
 }
 
 type WorkerHandler struct {
 	worker Worker
 }
 
-func (rw WorkerHandler) Download(package_name string, index_url string) {
+func (rw WorkerHandler) Download(packageName string, indexUrl string) {
 	rw.worker.Download(
 		os.Getenv("package_tmp"),
-		package_name,
-		index_url,
+		packageName,
+		indexUrl,
 	)
 }
 
-func (rw WorkerHandler) DownloadFromIndex(destination string, package_name string, index_url string) {
+func (rw WorkerHandler) DownloadFromIndex(destination string, packageName string, indexUrl string) {
 	rw.worker.Download(
 		destination,
-		package_name,
-		index_url,
+		packageName,
+		indexUrl,
 	)
 }
 
-func (rw WorkerHandler) Sync(target_url string, package_file string) {
+func (rw WorkerHandler) Sync(targetUrl string, packageFile string) {
 	rw.worker.Sync(
-		target_url,
-		package_file,
+		targetUrl,
+		packageFile,
 	)
 }
 
-func (rw WorkerHandler) Remove(full_path string) error {
-	return rw.worker.Remove(full_path)
+func (rw WorkerHandler) Remove(fullPath string) error {
+	return rw.worker.Remove(fullPath)
 }
 
 func NewRepositoryWorker(worker Worker) WorkerHandler {
 	return WorkerHandler{worker: worker}
 }
 
-func UploadToRepository(worker WorkerHandler, target_url string, source_path string) {
+func UploadToRepository(worker WorkerHandler, targetUrl string, sourcePath string) {
 
 	var wg sync.WaitGroup
 
-	files, err := ioutil.ReadDir(source_path)
+	files, err := ioutil.ReadDir(sourcePath)
 	if err != nil {
 		fmt.Println("讀取目錄錯誤: ", err)
 		panic(err)
 	}
 	for _, file := range files {
 		wg.Add(1)
-		pkg_name := fmt.Sprintf("%s/%s", source_path, file.Name())
+		pkgName := fmt.Sprintf("%s/%s", sourcePath, file.Name())
 		go func() {
-			worker.Sync(target_url, pkg_name)
+			worker.Sync(targetUrl, pkgName)
 			wg.Done()
 		}()
 	}

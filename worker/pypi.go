@@ -26,7 +26,7 @@ func (py Pypi) Download(destination string, packageName string, indexUrl string)
 
 func (py Pypi) Sync(targetUrl string, packageFile string) string {
 
-	api_url := targetUrl
+	apiUrl := targetUrl
 	file, err := os.Open(packageFile)
 	if err != nil {
 		panic(err)
@@ -45,7 +45,7 @@ func (py Pypi) Sync(targetUrl string, packageFile string) string {
 	}
 	writer.Close()
 
-	request, err := http.NewRequest("POST", api_url, requestBody)
+	request, err := http.NewRequest("POST", apiUrl, requestBody)
 	if err != nil {
 		panic(err)
 	}
@@ -68,9 +68,9 @@ func (py Pypi) Sync(targetUrl string, packageFile string) string {
 
 }
 
-func (py Pypi) Remove(package_name string) error {
-	full_path := fmt.Sprintf("./tmp/%s", package_name)
-	err := os.RemoveAll(full_path)
+func (py Pypi) Remove(packageName string) error {
+	fullPath := fmt.Sprintf("./tmp/%s", packageName)
+	err := os.RemoveAll(fullPath)
 	return err
 
 }
