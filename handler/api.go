@@ -34,35 +34,15 @@ func GetPackage(c *gin.Context) {
 		withConf       string = ""
 	)
 	var wk worker.WorkerHandler
-	if in, isExist := c.GetPostForm("packageName"); isExist && in != "" {
-		packageName = in
-	} else {
-		c.HTML(http.StatusBadRequest, GetTemplate("package"), gin.H{
-			"error": errors.New("Please input package name"),
-		})
-	}
-	if in, isExist := c.GetPostForm("packageType"); isExist && in != "" {
-		packageType = in
-	} else {
-		c.HTML(http.StatusBadRequest, GetTemplate("package"), gin.H{
-			"error": errors.New("Please input package type"),
-		})
-	}
-	if in, isExist := c.GetPostForm("packageVersion"); isExist && in != "" {
-		packageVersion = in
-	} else {
-		c.HTML(http.StatusBadRequest, "packageVersion", gin.H{
-			"error": errors.New("Please input package version"),
-		})
-	}
+	InitPage(c, packageName, packageType, packageVersion)
+	projectName := DownloadPackage(
+		packageName,
+		packageType,
+		packageVersion,
+		os.Getenv("internet_index"),
+		"./tmp/",
+	)
 
-	packageName = fmt.Sprintf("%s==%s", packageName, packageVersion)
-	indexUrl := os.Getenv("internet_index")
-	if packageType == "pypi" {
-		wk = worker.NewRepositoryWorker(worker.Pypi{})
-	}
-	wk.DownloadFromIndex("./tmp/", packageName, indexUrl)
-	projectName := strings.Split(packageName, "==")[0]
 	wss.DoWhitesourceScan(packageName, projectName, withConf)
 	wss.DoUploadRequest(projectName)
 
@@ -84,14 +64,7 @@ func GetPackage(c *gin.Context) {
 	})
 }
 
-func SyncPackage(c *gin.Context) {
-
-	var (
-		packageName    string
-		packageType    string
-		packageVersion string
-	)
-	var wk worker.WorkerHandler
+func InitPage(c *gin.Context, packageName, packageType, packageVersion string) {
 	if in, isExist := c.GetPostForm("packageName"); isExist && in != "" {
 		packageName = in
 	} else {
@@ -113,16 +86,37 @@ func SyncPackage(c *gin.Context) {
 			"error": errors.New("Please input package version"),
 		})
 	}
+}
 
+func DownloadPackage(packageName, packageType, packageVersion, indexUrl, destination string) string {
+
+	var wk worker.WorkerHandler
 	packageName = fmt.Sprintf("%s==%s", packageName, packageVersion)
-	indexUrl := os.Getenv("tmp_index")
+	// indexUrl := os.Getenv("tmp_index")
 	if packageType == "pypi" {
 		wk = worker.NewRepositoryWorker(worker.Pypi{})
 	}
-	wk.DownloadFromIndex("./sync_tmp/", packageName, indexUrl)
-	_ = strings.Split(packageName, "==")[0]
-	// wss.DoWhitesourceScan(packageName, projectName)
-	// wss.DoUploadRequest(projectName)
+	wk.DownloadFromIndex(destination, packageName, indexUrl)
+	return strings.Split(packageName, "==")[0]
+}
+
+func SyncPackage(c *gin.Context) {
+
+	var (
+		packageName    string
+		packageType    string
+		packageVersion string
+	)
+	var wk worker.WorkerHandler
+	InitPage(c, packageName, packageType, packageVersion)
+
+	DownloadPackage(
+		packageName,
+		packageType,
+		packageVersion,
+		os.Getenv("tmp_index"),
+		"./sync_tmp/",
+	)
 
 	worker.UploadToRepository(wk, os.Getenv("prod_api"), fmt.Sprintf("./tmp/%s", packageName))
 	c.HTML(http.StatusOK, GetTemplate("sync"), nil)
