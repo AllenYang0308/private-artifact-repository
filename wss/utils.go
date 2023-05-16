@@ -105,7 +105,15 @@ func GenerateProjectReportAsync(projectName string) string {
 
 	asyncProcessStatusRequest.InitRequest(updateRequestOrigin, uploadResponseData)
 	asyncProcessStatusRequest.Format = "json"
+
 	jsonData, _ := asyncProcessStatusRequest.GetJsonData()
+
+	body := AskProcessStatus(jsonData)
+	err = json.Unmarshal(body, &processStatusResponse)
+	return processStatusResponse.AsyncProcessStatus.Uuid
+}
+
+func AskProcessStatus(jsonData []byte) []byte {
 	req, _ := http.NewRequest(
 		"POST",
 		os.Getenv("whitesource_api"),
@@ -119,11 +127,10 @@ func GenerateProjectReportAsync(projectName string) string {
 	if err != nil {
 		panic(err)
 	}
-	defer resp.Body.Close()
 
+	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
-	err = json.Unmarshal(body, &processStatusResponse)
-	return processStatusResponse.AsyncProcessStatus.Uuid
+	return body
 }
 
 func GetProcessStatus(uuid string, projectName string) string {
@@ -172,23 +179,9 @@ func GetProcessStatus(uuid string, projectName string) string {
 		case uuid := <-ch:
 			asyncProcessStatusRequest.Uuid = uuid
 			asyncProcessStatusRequest.OrgToken = os.Getenv("WS_APIKEY")
+
 			jsonData, _ := asyncProcessStatusRequest.GetJsonData()
-			req, _ := http.NewRequest(
-				"POST",
-				os.Getenv("whitesource_api"),
-				bytes.NewBuffer(jsonData),
-			)
-			req.Header.Set(GetJsonContentType())
-			req.Header.Set("Charset", "utf-8")
-
-			client := &http.Client{}
-			resp, err := client.Do(req)
-			if err != nil {
-				panic(err)
-			}
-			defer resp.Body.Close()
-
-			body, _ := ioutil.ReadAll(resp.Body)
+			body := AskProcessStatus(jsonData)
 			json.Unmarshal(body, &asyncProcessResponse)
 			if asyncProcessResponse.AsyncProcessStatus.Status == "SUCCESS" {
 				status = "ok"
@@ -215,7 +208,7 @@ func GetProjectRiskAlert(destination string) string {
 	var updateRequestOrigin UpdateRequestOriginal
 	var uploadResponseStatus UploadResponseStatus
 	var uploadResponseData UploadResponseData
-	var projectAlertRequest ProjectAlertRequest
+	var projectAlertRequest ProjectInfoRequest
 
 	requestFile := GetFilePath(
 		os.Getenv("whitesource_path"),
@@ -239,23 +232,8 @@ func GetProjectRiskAlert(destination string) string {
 
 	projectAlertRequest.InitRequest(updateRequestOrigin, uploadResponseData)
 	jsonData, _ := projectAlertRequest.GetJsonData()
+	body := AskProcessStatus(jsonData)
 
-	req, _ := http.NewRequest(
-		"POST",
-		os.Getenv("whitesource_api"),
-		bytes.NewBuffer(jsonData),
-	)
-	req.Header.Set(GetJsonContentType())
-	req.Header.Set("Charset", "utf-8")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		panic(err)
-	}
-	defer resp.Body.Close()
-
-	body, _ := ioutil.ReadAll(resp.Body)
 	return string(body)
 }
 
@@ -315,7 +293,6 @@ func GetProjectRiskReport(destination string) map[string]string {
 		0644,
 	)
 	if err != nil {
-		panic(err)
 		return map[string]string{
 			"status": "failed",
 			"code":   "500",
