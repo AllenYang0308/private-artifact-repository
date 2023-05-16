@@ -132,6 +132,12 @@ type AsyncProcessStatusRequest struct {
 	Uuid        string `json:"uuid" url:"uuid,ommitempty"`
 }
 
+type ProjectAlertRequest struct {
+	RequestType  string `json:"requestType" url:"requestType,omitempty"`
+	UserKey      string `json:"userKey" url:"userKey,omitempty"`
+	ProjectToken string `json:"projectToken" url:"projectToken,omitempty"`
+}
+
 type ProjectInfoRequest struct {
 	RequestType  string `json:"requestType" url:"requestType,omitempty"`
 	UserKey      string `json:"userKey" url:"userKey,omitempty"`

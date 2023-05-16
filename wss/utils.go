@@ -201,6 +201,64 @@ func GetProcessStatus(uuid string, projectName string) string {
 	}
 }
 
+func GetPrettyString(str string) (string, error) {
+	var prettyJSON bytes.Buffer
+
+	if err := json.Indent(&prettyJSON, []byte(str), "", "    "); err != nil {
+		return "", err
+	}
+
+	return prettyJSON.String(), nil
+}
+
+func GetProjectRiskAlert(destination string) string {
+	var updateRequestOrigin UpdateRequestOriginal
+	var uploadResponseStatus UploadResponseStatus
+	var uploadResponseData UploadResponseData
+	var projectAlertRequest ProjectAlertRequest
+
+	requestFile := GetFilePath(
+		os.Getenv("whitesource_path"),
+		destination,
+		os.Getenv("request_file"),
+	)
+	responseStatusFile := GetFilePath(
+		os.Getenv("whitesource_path"),
+		destination,
+		os.Getenv("response_status_file"),
+	)
+	updateRequestOrigin.FromFile(requestFile)
+	uploadResponseStatus.FromFile(responseStatusFile)
+	err := json.Unmarshal(
+		[]byte(uploadResponseStatus.Data),
+		&uploadResponseData,
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	projectAlertRequest.InitRequest(updateRequestOrigin, uploadResponseData)
+	jsonData, _ := projectAlertRequest.GetJsonData()
+
+	req, _ := http.NewRequest(
+		"POST",
+		os.Getenv("whitesource_api"),
+		bytes.NewBuffer(jsonData),
+	)
+	req.Header.Set(GetJsonContentType())
+	req.Header.Set("Charset", "utf-8")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	body, _ := ioutil.ReadAll(resp.Body)
+	return string(body)
+}
+
 func GetProjectRiskReport(destination string) map[string]string {
 	var updateRequestOrigin UpdateRequestOriginal
 	var uploadResponseStatus UploadResponseStatus
@@ -258,9 +316,16 @@ func GetProjectRiskReport(destination string) map[string]string {
 	)
 	if err != nil {
 		panic(err)
+		return map[string]string{
+			"status": "failed",
+			"code":   "500",
+		}
 	}
 
-	return map[string]string{"status": "successful", "code": "200"}
+	return map[string]string{
+		"status": "successful",
+		"code":   "200",
+	}
 }
 
 func GetInventoryReport() InventoryReport {

@@ -40,5 +40,6 @@ func main() {
 	}
 	if *mode == "cmd" {
 		handler.GetPackageReport(*packageName, *projectName, *withConf)
+		handler.GetProjectAlert(*projectName)
 	}
 }

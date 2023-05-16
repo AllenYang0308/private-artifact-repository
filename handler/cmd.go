@@ -8,7 +8,6 @@ import (
 )
 
 func GetPackageReport(packageName string, projectName string, withConf string) {
-	fmt.Println(withConf)
 	wss.DoWhitesourceScan(packageName, projectName, withConf)
 	wss.DoUploadRequest(projectName)
 
@@ -22,4 +21,19 @@ func GetPackageReport(packageName string, projectName string, withConf string) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func GetProjectAlert(projectName string) {
+	rsp := wss.GetProjectRiskAlert(projectName)
+	rsp, _ = wss.GetPrettyString(rsp)
+
+	reportPath := fmt.Sprintf("report/%s", projectName)
+	reportFile := fmt.Sprintf(reportPath + "/alert.json")
+	os.Mkdir(reportPath, 0755)
+	err := os.WriteFile(reportFile, []byte(rsp), 0644)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Print(rsp)
 }

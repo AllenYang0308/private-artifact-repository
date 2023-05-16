@@ -17,7 +17,6 @@ func NewUpdateRequestFromFile(filepath string) UpdateRequestOriginal {
 		panic(err)
 	}
 	defer file.Close()
-
 	data, _ := ioutil.ReadAll(file)
 	err = json.Unmarshal(data, &updateRequestOrigin)
 	if err != nil {
