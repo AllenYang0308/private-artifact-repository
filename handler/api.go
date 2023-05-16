@@ -92,7 +92,6 @@ func DownloadPackage(packageName, packageType, packageVersion, indexUrl, destina
 
 	var wk worker.WorkerHandler
 	packageName = fmt.Sprintf("%s==%s", packageName, packageVersion)
-	// indexUrl := os.Getenv("tmp_index")
 	if packageType == "pypi" {
 		wk = worker.NewRepositoryWorker(worker.Pypi{})
 	}
