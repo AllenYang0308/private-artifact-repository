@@ -211,3 +211,7 @@ type ProjectVitals struct {
 	CreationDate    string `json:"creationDate" url:"creationDate,omitempty"`
 	LastUpdatedDate string `json:"lastUpdatedDate" url:"lastUpdatedDate,omitempty"`
 }
+
+type ProjectScanInfo struct {
+	ProjectVitals ProjectVitals `json:"projectVitals" url:"projectVitlas,omitempty"`
+}
